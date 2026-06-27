@@ -6,6 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+  /* Prevent overflow issues on phones */
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     background: #050814;
@@ -36,6 +41,7 @@
     padding: 14px;
     margin-bottom: 16px;
     border: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden; /* keep children inside */
   }
 
   label {
@@ -47,6 +53,7 @@
 
   select, input {
     width: 100%;
+    max-width: 100%;
     padding: 10px;
     margin-top: 6px;
     border-radius: 10px;
@@ -54,6 +61,7 @@
     background: #0c1324;
     color: #fff;
     font-size: 15px;
+    display: block;
   }
 
   button {
@@ -407,7 +415,7 @@ const nutrition = {
   }
 };
 
-/* DEFAULT NUTRITION FOR BRANDS/FLAVORS NOT LISTED */
+/* DEFAULT NUTRITION FOR OTHER COMBOS */
 const defaultNutrition = { cal:120, sugar:30, caf:0, carbs:30, sodium:50 };
 
 /* DOM */
