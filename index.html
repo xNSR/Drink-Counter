@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Beverage Tracker — Mobile, Full Data</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    margin: 0;
+    background: #050814;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 16px 0 6px;
+    font-size: 24px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #00eaff;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 14px;
+  }
+
+  .card {
+    background: #11182b;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  label {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 8px;
+    display: block;
+  }
+
+  select, input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: #0c1324;
+    color: #fff;
+    font-size: 15px;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #00eaff, #00ff9d);
+    color: #000;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    background:#222;
+    color:#00eaff;
+    border:1px solid #00eaff;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .stat {
+    background: #0c1324;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .stat-value {
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  #logList {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .entry {
+    background: #0c1324;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border-left: 3px solid #00eaff;
+    font-size: 13px;
+  }
+
+  #smiley {
+    font-size: 40px;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  #smileyText {
+    text-align:center;
+    font-size:12px;
+    margin-top:4px;
+    opacity:0.8;
+  }
+</style>
+</head>
+<body>
+
+<h1>Drink Tracker</h1>
+
+<div class="container">
+
+  <!-- HEALTH INPUT + FACE METER -->
+  <div class="card">
+    <label>Your Height (inches)</label>
+    <input id="height" type="number" placeholder="e.g. 70">
+
+    <label>Your Weight (lbs)</label>
+    <input id="weight" type="number" placeholder="e.g. 180">
+
+    <div id="smiley">😀</div>
+    <div id="smileyText">Level 1 • Very safe</div>
+  </div>
+
+  <!-- DRINK INPUT -->
+  <div class="card">
+    <label>Liquid Type</label>
+    <select id="liquid"></select>
+
+    <label>Brand</label>
+    <select id="brand"></select>
+
+    <label>Flavor</label>
+    <select id="flavor"></select>
+
+    <label>Serving Size (oz)</label>
+    <select id="size">
+      <option>6</option><option>8</option><option>12</option>
+      <option>16</option><option>20</option><option>24</option><option>32</option>
+    </select>
+
+    <button id="logBtn">Log Drink</button>
+    <button id="clearBtn" class="btn-secondary">Clear All</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="card">
+    <div class="stats">
+      <div class="stat">
+        <div>Total Drinks</div>
+        <div class="stat-value" id="statDrinks">0</div>
+      </div>
+      <div class="stat">
+        <div>Calories</div>
+        <div class="stat-value" id="statCal">0</div>
+      </div>
+      <div class="stat">
+        <div>Sugar (g)</div>
+        <div class="stat-value" id="statSugar">0</div>
+      </div>
+      <div class="stat">
+        <div>Caffeine (mg)</div>
+        <div class="stat-value" id="statCaf">0</div>
+      </div>
+      <div class="stat">
+        <div>Carbs (g)</div>
+        <div class="stat-value" id="statCarbs">0</div>
+      </div>
+      <div class="stat">
+        <div>Sodium (mg)</div>
+        <div class="stat-value" id="statSodium">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="card">
+    <div id="logList"></div>
+  </div>
+
+</div>
+
+<script>
+/* LIQUID TYPES */
+const liquids = [
+  "Soft Drink","Water","Juice","Energy Drink","Sports Drink",
+  "Tea","Coffee","Sparkling Water","Lemonade","Punch"
+];
+
+/* BRANDS BY LIQUID */
+const brandsByLiquid = {
+  "Soft Drink":[
+    "Coca-Cola","Pepsi","Mountain Dew","Dr Pepper","Sprite","Fanta",
+    "7UP","Sunkist","A&W","Barq's","Mug","RC Cola","Diet Coke",
+    "Diet Pepsi","Canada Dry","Crush","Jarritos","Squirt","Sierra Mist"
+  ],
+  "Water":[
+    "Dasani","Aquafina","Smartwater","Fiji","Evian","Poland Spring",
+    "Ice Mountain","Nestlé Pure Life","Arrowhead","Ozarka","Deer Park"
+  ],
+  "Juice":[
+    "Minute Maid","Tropicana","Ocean Spray","Welch's","Simply",
+    "Capri Sun","V8","Naked","Bolthouse Farms","Dole"
+  ],
+  "Energy Drink":[
+    "Red Bull","Monster","Rockstar","Bang","Reign","Celsius",
+    "NOS","AMP","Full Throttle","5-hour Energy"
+  ],
+  "Sports Drink":[
+    "Gatorade","Powerade","BodyArmor","Propel","Vitaminwater"
+  ],
+  "Tea":[
+    "Lipton","Arizona","Pure Leaf","Gold Peak","Honest Tea",
+    "Snapple","Brisk","Tazo","Teavana","Peace Tea"
+  ],
+  "Coffee":[
+    "Starbucks","Dunkin'","Stok","La Colombe","Peet's",
+    "Seattle's Best","McCafe","Caribou Coffee","Califia Farms"
+  ],
+  "Sparkling Water":[
+    "LaCroix","Bubly","Perrier","San Pellegrino","Spindrift",
+    "Topo Chico","AHA","Hint","Polar Seltzer","Schweppes"
+  ],
+  "Lemonade":[
+    "Simply Lemonade","Minute Maid Lemonade","Country Time",
+    "Calypso","Hubert's Lemonade","Newman's Own","Arizona Lemonade"
+  ],
+  "Punch":[
+    "Hawaiian Punch","Minute Maid Punch","Capri Sun Punch",
+    "Kool-Aid","Hi-C","Tampico","SunnyD","Welch's Punch"
+  ]
+};
+
+/* FLAVORS */
+const flavors = {
+  "Coca-Cola":["Original","Cherry","Vanilla","Zero Sugar"],
+  "Pepsi":["Original","Wild Cherry","Zero Sugar"],
+  "Mountain Dew":["Original","Code Red","Voltage","Baja Blast"],
+  "Dr Pepper":["Original","Cherry","Cream Soda"],
+  "Sprite":["Original","Cherry"],
+  "Fanta":["Orange","Grape","Strawberry","Pineapple"],
+  "7UP":["Original","Cherry"],
+  "Sunkist":["Orange","Grape","Strawberry"],
+  "A&W":["Root Beer","Cream Soda"],
+  "Barq's":["Root Beer","Diet Root Beer"],
+  "Mug":["Root Beer","Cream Soda"],
+  "RC Cola":["Original"],
+  "Diet Coke":["Original"],
+  "Diet Pepsi":["Original"],
+  "Canada Dry":["Ginger Ale","Diet Ginger Ale"],
+  "Crush":["Orange","Grape","Strawberry"],
+  "Jarritos":["Mandarin","Lime","Tamarind"],
+  "Squirt":["Original"],
+  "Sierra Mist":["Original"],
+
+  "Dasani":["Unflavored","Lemon","Berry"],
+  "Aquafina":["Unflavored","Lemon"],
+  "Smartwater":["Unflavored","Alkaline"],
+  "Fiji":["Unflavored"],
+  "Evian":["Unflavored"],
+  "Poland Spring":["Unflavored"],
+  "Ice Mountain":["Unflavored"],
+  "Nestlé Pure Life":["Unflavored"],
+  "Arrowhead":["Unflavored"],
+  "Ozarka":["Unflavored"],
+  "Deer Park":["Unflavored"],
+
+  "Minute Maid":["Orange","Apple","Fruit Punch"],
+  "Tropicana":["Orange","Apple","Grapefruit"],
+  "Ocean Spray":["Cranberry","Cran-Grape","Cran-Apple"],
+  "Welch's":["Grape","Apple","Fruit Punch"],
+  "Simply":["Orange","Apple","Lemonade"],
+  "Capri Sun":["Fruit Punch","Pacific Cooler","Strawberry Kiwi"],
+  "V8":["Original","Low Sodium","Fruit Fusion"],
+  "Naked":["Green Machine","Berry Blast","Orange Mango"],
+  "Bolthouse Farms":["Carrot","Green Goodness","Berry Boost"],
+  "Dole":["Pineapple","Orange","Mixed Fruit"],
+
+  "Red Bull":["Original","Sugarfree","Tropical","Blue"],
+  "Monster":["Original","Ultra Sunrise","Ultra Fiesta"],
+  "Rockstar":["Original","Punched","Zero Carb"],
+  "Bang":["Blue Razz","Rainbow Unicorn","Star Blast"],
+  "Reign":["Orange Dreamsicle","Melon Mania","Razzle Berry"],
+  "Celsius":["Orange","Peach Vibe","Kiwi Guava"],
+  "NOS":["Original","Grape"],
+  "AMP":["Original","Cherry"],
+  "Full Throttle":["Original"],
+  "5-hour Energy":["Berry","Grape","Extra Strength"],
+
+  "Gatorade":["Cool Blue","Fruit Punch","Lemon Lime","Glacier Freeze"],
+  "Powerade":["Mountain Berry","Fruit Punch","Orange"],
+  "BodyArmor":["Fruit Punch","Orange Mango","Strawberry Banana"],
+  "Propel":["Berry","Grape","Kiwi Strawberry"],
+  "Vitaminwater":["XXX","Focus","Energy"],
+
+  "Lipton":["Peach","Lemon","Green Tea"],
+  "Arizona":["Green Tea","Sweet Tea","Arnold Palmer"],
+  "Pure Leaf":["Sweet Tea","Unsweet Tea","Lemon Tea"],
+  "Gold Peak":["Sweet Tea","Unsweet Tea","Green Tea"],
+  "Honest Tea":["Half & Half","Just Green Tea","Peach"],
+  "Snapple":["Peach Tea","Lemon Tea","Raspberry Tea"],
+  "Brisk":["Lemon Tea","Half & Half"],
+  "Tazo":["Passion","Zen","Awake"],
+  "Teavana":["Mango Black Tea","Passion Tango"],
+  "Peace Tea":["Caddy Shack","Razzleberry","Georgia Peach"],
+
+  "Starbucks":["Mocha","Caramel","Vanilla"],
+  "Dunkin'":["Original","French Vanilla","Mocha"],
+  "Stok":["Black","Not Too Sweet"],
+  "La Colombe":["Draft Latte","Mocha","Triple Shot"],
+  "Peet's":["Major Dickason","French Roast"],
+  "Seattle's Best":["Portside Blend","House Blend"],
+  "McCafe":["Premium Roast","Iced Coffee"],
+  "Caribou Coffee":["Caribou Blend","Daybreak"],
+  "Califia Farms":["Mocha","Vanilla","Unsweetened"],
+
+  "LaCroix":["Lemon","Lime","Berry","Orange"],
+  "Bubly":["Cherry","Lime","Blackberry"],
+  "Perrier":["Lemon","Lime","Unflavored"],
+  "San Pellegrino":["Lemon","Orange","Blood Orange"],
+  "Spindrift":["Lemon","Raspberry Lime","Grapefruit"],
+  "Topo Chico":["Lime","Grapefruit","Unflavored"],
+  "AHA":["Blueberry Pomegranate","Lime Watermelon"],
+  "Hint":["Watermelon","Blackberry","Pineapple"],
+  "Polar Seltzer":["Orange Vanilla","Black Cherry"],
+  "Schweppes":["Lemon Lime","Ginger Ale"],
+
+  "Simply Lemonade":["Original","Raspberry","Strawberry"],
+  "Minute Maid Lemonade":["Original","Pink","Strawberry"],
+  "Country Time":["Original","Pink"],
+  "Calypso":["Ocean Blue","Triple Melon","Original"],
+  "Hubert's Lemonade":["Original","Strawberry","Blackberry"],
+  "Newman's Own":["Original","Virgin Lemonade"],
+  "Arizona Lemonade":["Original","Half & Half"],
+
+  "Hawaiian Punch":["Fruit Juicy Red","Berry Blue","Green Berry Rush"],
+  "Minute Maid Punch":["Fruit Punch","Berry Punch"],
+  "Capri Sun Punch":["Fruit Punch","Mountain Cooler"],
+  "Kool-Aid":["Tropical Punch","Grape","Cherry"],
+  "Hi-C":["Orange Lavaburst","Flashin' Fruit Punch"],
+  "Tampico":["Citrus Punch","Island Punch"],
+  "SunnyD":["Tangy Original","Smooth","Orange Strawberry"],
+  "Welch's Punch":["Fruit Punch","Tropical Punch"]
+};
+
+/* NUTRITION (per 12 oz, scaled) */
+const nutrition = {
+  "Coca-Cola": {
+    "Original": { cal:140, sugar:39, caf:34, carbs:39, sodium:45 },
+    "Cherry": { cal:150, sugar:42, caf:34, carbs:42, sodium:45 },
+    "Vanilla": { cal:150, sugar:42, caf:34, carbs:42, sodium:45 },
+    "Zero Sugar": { cal:0, sugar:0, caf:34, carbs:0, sodium:40 }
+  },
+  "Pepsi": {
+    "Original": { cal:150, sugar:41, caf:38, carbs:41, sodium:30 },
+    "Wild Cherry": { cal:160, sugar:42, caf:38, carbs:42, sodium:30 },
+    "Zero Sugar": { cal:0, sugar:0, caf:38, carbs:0, sodium:30 }
+  },
+  "Mountain Dew": {
+    "Original": { cal:170, sugar:46, caf:54, carbs:46, sodium:60 },
+    "Code Red": { cal:170, sugar:46, caf:54, carbs:46, sodium:60 },
+    "Voltage": { cal:170, sugar:46, caf:54, carbs:46, sodium:60 },
+    "Baja Blast": { cal:160, sugar:44, caf:54, carbs:44, sodium:60 }
+  },
+  "Dasani": {
+    "Unflavored": { cal:0, sugar:0, caf:0, carbs:0, sodium:0 },
+    "Lemon": { cal:0, sugar:0, caf:0, carbs:0, sodium:0 },
+    "Berry": { cal:0, sugar:0, caf:0, carbs:0, sodium:0 }
+  },
+  "Minute Maid": {
+    "Orange": { cal:160, sugar:40, caf:0, carbs:40, sodium:15 },
+    "Apple": { cal:170, sugar:42, caf:0, carbs:42, sodium:15 },
+    "Fruit Punch": { cal:160, sugar:40, caf:0, carbs:40, sodium:15 }
+  },
+  "Red Bull": {
+    "Original": { cal:110, sugar:27, caf:80, carbs:28, sodium:105 },
+    "Sugarfree": { cal:10, sugar:0, caf:80, carbs:1, sodium:105 }
+  },
+  "Monster": {
+    "Original": { cal:210, sugar:54, caf:160, carbs:54, sodium:370 },
+    "Ultra Sunrise": { cal:10, sugar:0, caf:150, carbs:1, sodium:370 }
+  },
+  "Gatorade": {
+    "Cool Blue": { cal:80, sugar:21, caf:0, carbs:21, sodium:160 },
+    "Fruit Punch": { cal:80, sugar:21, caf:0, carbs:21, sodium:160 },
+    "Lemon Lime": { cal:80, sugar:21, caf:0, carbs:21, sodium:160 }
+  }
+};
+
+/* DEFAULT NUTRITION FOR BRANDS/FLAVORS NOT LISTED */
+const defaultNutrition = { cal:120, sugar:30, caf:0, carbs:30, sodium:50 };
+
+/* DOM */
+const liquidSel = document.getElementById("liquid");
+const brandSel = document.getElementById("brand");
+const flavorSel = document.getElementById("flavor");
+const sizeSel = document.getElementById("size");
+const logBtn = document.getElementById("logBtn");
+const clearBtn = document.getElementById("clearBtn");
+const logList = document.getElementById("logList");
+
+const statDrinks = document.getElementById("statDrinks");
+const statCal = document.getElementById("statCal");
+const statSugar = document.getElementById("statSugar");
+const statCaf = document.getElementById("statCaf");
+const statCarbs = document.getElementById("statCarbs");
+const statSodium = document.getElementById("statSodium");
+
+const heightEl = document.getElementById("height");
+const weightEl = document.getElementById("weight");
+const smiley = document.getElementById("smiley");
+const smileyText = document.getElementById("smileyText");
+
+/* STATE */
+let totalDrinks = 0;
+let totalCal = 0;
+let totalSugar = 0;
+let totalCaf = 0;
+let totalCarbs = 0;
+let totalSodium = 0;
+
+/* FACE METER (10 levels) */
+const faces = [
+  { emoji:"😀", text:"Level 1 • Very safe" },
+  { emoji:"🙂", text:"Level 2 • Safe" },
+  { emoji:"😊", text:"Level 3 • Fine" },
+  { emoji:"😌", text:"Level 4 • Mild load" },
+  { emoji:"😐", text:"Level 5 • Watch intake" },
+  { emoji:"😕", text:"Level 6 • Getting high" },
+  { emoji:"😟", text:"Level 7 • High sugar/caffeine" },
+  { emoji:"😣", text:"Level 8 • Very high" },
+  { emoji:"😫", text:"Level 9 • Danger zone" },
+  { emoji:"☠️", text:"Level 10 • Seriously too much" }
+];
+
+function updateFace() {
+  const h = parseFloat(heightEl.value);
+  const w = parseFloat(weightEl.value);
+  let bmiScore = 0;
+  if (h && w) {
+    const bmi = (w / (h*h)) * 703;
+    if (bmi < 18.5) bmiScore = 2;
+    else if (bmi < 25) bmiScore = 0;
+    else if (bmi < 30) bmiScore = 3;
+    else bmiScore = 6;
+  }
+
+  const sugarScore = totalSugar > 200 ? 6 : totalSugar > 150 ? 4 : totalSugar > 100 ? 2 : 0;
+  const cafScore = totalCaf > 400 ? 6 : totalCaf > 300 ? 4 : totalCaf > 200 ? 2 : 0;
+  const calScore = totalCal > 2000 ? 6 : totalCal > 1500 ? 4 : totalCal > 1000 ? 2 : 0;
+
+  let risk = bmiScore + sugarScore + cafScore + calScore;
+  if (risk > 9) risk = 9;
+
+  smiley.textContent = faces[risk].emoji;
+  smileyText.textContent = faces[risk].text;
+}
+
+/* POPULATE LIQUIDS */
+liquids.forEach(l => {
+  const opt = document.createElement("option");
+  opt.textContent = l;
+  liquidSel.appendChild(opt);
+});
+
+/* UPDATE BRANDS */
+function updateBrands() {
+  brandSel.innerHTML = "";
+  const list = brandsByLiquid[liquidSel.value] || [];
+  list.forEach(b => {
+    const opt = document.createElement("option");
+    opt.textContent = b;
+    brandSel.appendChild(opt);
+  });
+  updateFlavors();
+}
+
+/* UPDATE FLAVORS */
+function updateFlavors() {
+  flavorSel.innerHTML = "";
+  const brand = brandSel.value;
+  const list = flavors[brand] || ["Standard"];
+  list.forEach(f => {
+    const opt = document.createElement("option");
+    opt.textContent = f;
+    flavorSel.appendChild(opt);
+  });
+}
+
+/* INIT */
+updateBrands();
+
+/* EVENTS */
+liquidSel.addEventListener("change", updateBrands);
+brandSel.addEventListener("change", updateFlavors);
+heightEl.addEventListener("input", updateFace);
+weightEl.addEventListener("input", updateFace);
+
+/* LOG DRINK */
+logBtn.addEventListener("click", () => {
+  const liquid = liquidSel.value;
+  const brand = brandSel.value;
+  const flavor = flavorSel.value;
+  const size = parseFloat(sizeSel.value || "12");
+
+  const base = (nutrition[brand] && nutrition[brand][flavor]) ? nutrition[brand][flavor] : defaultNutrition;
+  const factor = size / 12;
+
+  const cal = Math.round(base.cal * factor);
+  const sugar = +(base.sugar * factor).toFixed(1);
+  const caf = Math.round(base.caf * factor);
+  const carbs = +(base.carbs * factor).toFixed(1);
+  const sodium = Math.round(base.sodium * factor);
+
+  totalDrinks++;
+  totalCal += cal;
+  totalSugar += sugar;
+  totalCaf += caf;
+  totalCarbs += carbs;
+  totalSodium += sodium;
+
+  statDrinks.textContent = totalDrinks;
+  statCal.textContent = totalCal;
+  statSugar.textContent = totalSugar.toFixed(1);
+  statCaf.textContent = totalCaf;
+  statCarbs.textContent = totalCarbs.toFixed(1);
+  statSodium.textContent = totalSodium;
+
+  const div = document.createElement("div");
+  div.className = "entry";
+  div.textContent = `${liquid} • ${brand} • ${flavor} • ${size} oz — ${cal} cal, ${sugar}g sugar, ${carbs}g carbs, ${caf}mg caffeine, ${sodium}mg sodium`;
+  logList.appendChild(div);
+
+  updateFace();
+});
+
+/* CLEAR */
+clearBtn.addEventListener("click", () => {
+  logList.innerHTML = "";
+  totalDrinks = 0;
+  totalCal = 0;
+  totalSugar = 0;
+  totalCaf = 0;
+  totalCarbs = 0;
+  totalSodium = 0;
+
+  statDrinks.textContent = 0;
+  statCal.textContent = 0;
+  statSugar.textContent = 0;
+  statCaf.textContent = 0;
+  statCarbs.textContent = 0;
+  statSodium.textContent = 0;
+
+  updateFace();
+});
+</script>
+
+</body>
+</html>
